@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NewsNow - 图谱式新闻探索</title>
+    <style>
+        /* 继承原有设计系统 */
+        :root {
+            /* 主色调 */
+            --primary-blue: #007AFF;
+            --primary-gray: #8E8E93;
+
+            /* 背景色 */
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F2F2F7;
+            --bg-tertiary: #FFFFFF;
+
+            /* 文字色 */
+            --text-primary: #000000;
+            --text-secondary: #3C3C43;
+            --text-tertiary: #8E8E93;
+
+            /* 字体系统 */
+            --font-large: 34px;
+            --font-title: 28px;
+            --font-body: 17px;
+            --font-caption: 15px;
+            --font-small: 13px;
+
+            /* 圆角系统 */
+            --radius-small: 8px;
+            --radius-medium: 12px;
+            --radius-large: 16px;
+            --radius-xlarge: 24px;
+
+            /* 阴影系统 */
+            --shadow-light: 0 2px 8px rgba(0,0,0,0.08);
+            --shadow-medium: 0 4px 16px rgba(0,0,0,0.12);
+            --shadow-heavy: 0 8px 32px rgba(0,0,0,0.16);
+
+            /* 动画 */
+            --transition-fast: 0.2s ease;
+            --transition-medium: 0.3s ease;
+            --transition-slow: 0.5s ease;
+
+            /* 图谱色彩系统 */
+            --color-military: linear-gradient(135deg, #667eea, #764ba2);
+            --color-ai: linear-gradient(135deg, #f093fb, #f5576c);
+            --color-tech: linear-gradient(135deg, #4facfe, #00f2fe);
+            --color-finance: linear-gradient(135deg, #43e97b, #38f9d7);
+            --color-global: linear-gradient(135deg, #fa709a, #fee140);
+            --color-sports: linear-gradient(135deg, #30cfd0, #330867);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 430px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--bg-primary);
+            position: relative;
+            box-shadow: var(--shadow-heavy);
+        }
+
+        /* 顶部搜索栏 */
+        .search-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 16px;
+        }
+
+        .search-bar {
+            position: relative;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xlarge);
+            padding: 12px 48px 12px 16px;
+            font-size: var(--font-body);
+            border: none;
+            width: 100%;
+            transition: all var(--transition-fast);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+        }
+
+        /* 视图切换器 */
+        .view-switcher {
+            display: flex;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-medium);
+            padding: 4px;
+            margin: 16px;
+            gap: 4px;
+        }
+
+        .view-btn {
+            flex: 1;
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            border-radius: var(--radius-small);
+            font-size: var(--font-caption);
+            font-weight: var(--weight-medium);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .view-btn.active {
+            background: var(--bg-tertiary);
+            color: var(--primary-blue);
+            box-shadow: var(--shadow-light);
+        }
+
+        /* 新闻世界地图 */
+        .news-world {
+            padding: 16px;
+            min-height: calc(100vh - 200px);
+        }
+
+        .world-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .world-icon {
+            font-size: 28px;
+            margin-right: 12px;
+        }
+
+        .world-heading {
+            font-size: var(--font-title);
+            font-weight: var(--weight-bold);
+            color: var(--text-primary);
+        }
+
+        .world-subtitle {
+            font-size: var(--font-caption);
+            color: var(--text-tertiary);
+            margin-top: 2px;
+        }
+
+        /* 信息领域 */
+        .info-domain {
+            margin-bottom: 20px;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .domain-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            cursor: pointer;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-large);
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .domain-header::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--color-military);
+            transition: width var(--transition-fast);
+        }
+
+        .domain-header.military::before { background: var(--color-military); }
+        .domain-header.ai::before { background: var(--color-ai); }
+        .domain-header.tech::before { background: var(--color-tech); }
+        .domain-header.finance::before { background: var(--color-finance); }
+        .domain-header.global::before { background: var(--color-global); }
+        .domain-header.sports::before { background: var(--color-sports); }
+
+        .domain-header:hover::before {
+            width: 8px;
+        }
+
+        .domain-header:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-light);
+        }
+
+        .domain-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-medium);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .domain-icon.military { background: var(--color-military); }
+        .domain-icon.ai { background: var(--color-ai); }
+        .domain-icon.tech { background: var(--color-tech); }
+        .domain-icon.finance { background: var(--color-finance); }
+        .domain-icon.global { background: var(--color-global); }
+        .domain-icon.sports { background: var(--color-sports); }
+
+        .domain-info {
+            flex: 1;
+        }
+
+        .domain-name {
+            font-size: var(--font-body);
+            font-weight: var(--weight-semibold);
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .domain-stats {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .domain-count {
+            font-size: var(--font-caption);
+            color: var(--text-tertiary);
+        }
+
+        .domain-heat {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .heat-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-tertiary);
+        }
+
+        .heat-dot.active {
+            background: #FF6B6B;
+        }
+
+        .domain-expand {
+            font-size: 16px;
+            color: var(--text-tertiary);
+            transition: transform var(--transition-fast);
+        }
+
+        .domain-header.expanded .domain-expand {
+            transform: rotate(180deg);
+        }
+
+        /* 热点新闻卡片 */
+        .hotspot-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition-medium) ease-out;
+            margin-left: 52px;
+        }
+
+        .hotspot-content.expanded {
+            max-height: 500px;
+        }
+
+        .hotspot-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-medium);
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            position: relative;
+        }
+
+        .hotspot-card:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-light);
+        }
+
+        .hotspot-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 16px;
+            border-radius: 2px;
+            background: var(--color-military);
+        }
+
+        .hotspot-card.ai::before { background: var(--color-ai); }
+        .hotspot-card.tech::before { background: var(--color-tech); }
+
+        .hotspot-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+
+        .hotspot-title {
+            flex: 1;
+            font-size: var(--font-caption);
+            font-weight: var(--weight-medium);
+            color: var(--text-primary);
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .hotspot-score {
+            background: linear-gradient(135deg, #34C759, #30D158);
+            color: white;
+            padding: 2px 6px;
+            border-radius: var(--radius-small);
+            font-size: var(--font-small);
+            font-weight: var(--weight-bold);
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+
+        .hotspot-meta {
+            font-size: var(--font-small);
+            color: var(--text-tertiary);
+        }
+
+        /* 浮动统计面板 */
+        .floating-stats {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-large);
+            padding: 12px 16px;
+            box-shadow: var(--shadow-heavy);
+            z-index: 50;
+            transition: all var(--transition-fast);
+        }
+
+        .stats-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .stats-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .stats-label {
+            font-size: var(--font-small);
+            color: var(--text-tertiary);
+            margin-right: 8px;
+        }
+
+        .stats-value {
+            font-size: var(--font-caption);
+            font-weight: var(--weight-semibold);
+            color: var(--text-primary);
+        }
+
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 430px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 20px;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            color: var(--text-tertiary);
+        }
+
+        .nav-item.active {
+            color: var(--primary-blue);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: var(--font-small);
+            font-weight: var(--weight-medium);
+        }
+
+        /* 动画 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        /* 响应式 */
+        @media (max-width: 375px) {
+            .container {
+                max-width: 100%;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                margin: 20px auto;
+                border-radius: var(--radius-large);
+                overflow: hidden;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部搜索栏 -->
+        <div class="search-header">
+            <input type="text" class="search-bar" placeholder="🗺️ 探索新闻世界，发现你感兴趣的内容..." />
+            <span class="search-icon">🔍</span>
+        </div>
+
+        <!-- 视图切换器 -->
+        <div class="view-switcher">
+            <button class="view-btn active" onclick="switchView('world')">🗺️ 世界地图</button>
+            <button class="view-btn" onclick="switchView('list')">📋 列表视图</button>
+            <button class="view-btn" onclick="switchView('grid')">🎯 网格视图</button>
+        </div>
+
+        <!-- 新闻世界地图 -->
+        <div class="news-world" id="worldView">
+            <div class="world-title">
+                <span class="world-icon">🌍</span>
+                <div>
+                    <div class="world-heading">新闻世界地图</div>
+                    <div class="world-subtitle">点击领域探索，发现你的兴趣热点</div>
+                </div>
+            </div>
+
+            <!-- 军事科技领域 -->
+            <div class="info-domain fade-in-up" style="animation-delay: 0.1s;">
+                <div class="domain-header military expanded" onclick="toggleDomain(this)">
+                    <div class="domain-icon military">🎖️</div>
+                    <div class="domain-info">
+                        <div class="domain-name">军事科技</div>
+                        <div class="domain-stats">
+                            <span class="domain-count">156 条新闻</span>
+                            <div class="domain-heat">
+                                <span class="heat-dot active"></span>
+                                <span class="heat-dot active"></span>
+                                <span class="heat-dot active"></span>
+                                <span class="heat-dot"></span>
+                                <span class="heat-dot"></span>
+                            </div>
+                            <span class="domain-count">🔥 极高热度</span>
+                        </div>
+                    </div>
+                    <span class="domain-expand">▼</span>
+                </div>
+                <div class="hotspot-content expanded">
+                    <div class="hotspot-card">
+                        <div class="hotspot-header">
+                            <div class="hotspot-title">新型无人机技术突破：续航时间提升300%</div>
+                            <div class="hotspot-score">95%</div>
+                        </div>
+                        <div class="hotspot-meta">军事观察 • 2小时前 • 匹配度极高</div>
+                    </div>
+                    <div class="hotspot-card">
+                        <div class="hotspot-header">
+                            <div class="hotspot-title">国产新装备列装：现代化国防能力显著提升</div>
+                            <div class="hotspot-score">92%</div>
+                        </div>
+                        <div class="hotspot-meta">国防科技 • 3小时前 • 你的最爱</div>
+                    </div>
+                    <div class="hotspot-card">
+                        <div class="hotspot-header">
+                            <div class="hotspot-title">量子雷达技术突破：隐形飞机无所遁形</div>
+                            <div class="hotspot-score">88%</div>
+                        </div>
+                        <div class="hotspot-meta">军事前沿 • 5小时前 • 技术突破</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI大模型领域 -->
+            <div class="info-domain fade-in-up" style="animation-delay: 0.2s;">
+                <div class="domain-header ai expanded" onclick="toggleDomain(this)">
+                    <div class="domain-icon ai">🤖</div>
+                    <div class="domain-info">
+                        <div class="domain-name">AI大模型</div>
+                        <div class="domain-stats">
+                            <span class="domain-count">243 条新闻</span>
+                            <div class="domain-heat">
+                                <span class="heat-dot active"></span>
+                                <span class="heat-dot active"></span>
+                                <span class="heat-dot active"></span>
+                                <span class="heat-dot active"></span>
+                                <span class="heat-dot"></span>
+                            </div>
+                            <span class="domain-count">🔥🔥 高热度</span>
+                        </div>
+                    </div>
+                    <span class="domain-expand">▼</span>
+                </div>
+                <div class="hotspot-content expanded">
+                    <div class="hotspot-card ai">
+                        <div class="hotspot-header">
+                            <div class="hotspot-title">GPT-5 即将发布：性能提升超乎想象</div>
+                            <div class="hotspot-score">88%</div>
+                        </div>
+                        <div class="hotspot-meta">AI前沿 • 3小时前 • 全网关注</div>
+                    </div>
+                    <div class="hotspot-card ai">
+                        <div class="hotspot-header">
+                            <div class="hotspot-title">量子计算与AI融合：算力革命即将到来</div>
+                            <div class="hotspot-score">85%</div>
+                        </div>
+                        <div class="hotspot-meta">智能科技 • 5小时前 • 技术前沿</div>
+                    </div>
+                    <div class="hotspot-card ai">
+                        <div class="hotspot-header">
+                            <div class="hotspot-title">开源AI模型突破：性能接近商业模型</div>
+                            <div class="hotspot-score">82%</div>
+                        </div>
+                        <div class="hotspot-meta">开源社区 • 6小时前 • 技术进展</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 科技创新领域 -->
+            <div class="info-domain fade-in-up" style="animation-delay: 0.3s;">
+                <div class="domain-header tech" onclick="toggleDomain(this)">
+                    <div class="domain-icon tech">💡</div>
+                    <div class="domain-info">
+                        <div class="domain-name">科技创新</div>
+                        <div class="domain-stats">
+                            <span class="domain-count">189 条新闻</span>
+                            <div class="domain-heat">
+                                <span class="heat-dot active"></span>
+                                <span class="heat-dot active"></span>
+                                <span class="heat-dot"></span>
+                                <span class="heat-dot"></span>
+                                <span class="heat-dot"></span>
+                            </div>
+                            <span class="domain-count">🌡️ 中等热度</span>
+                        </div>
+                    </div>
+                    <span class="domain-expand">▼</span>
+                </div>
+                <div class="hotspot-content">
+                    <!-- 内容将在点击时动态加载 -->
+                </div>
+            </div>
+
+            <!-- 其他领域 -->
+            <div class="info-domain fade-in-up" style="animation-delay: 0.4s;">
+                <div class="domain-header global" onclick="toggleDomain(this)">
+                    <div class="domain-icon global">🌐</div>
+                    <div class="domain-info">
+                        <div class="domain-name">更多领域</div>
+                        <div class="domain-stats">
+                            <span class="domain-count">567 条新闻</span>
+                            <div class="domain-heat">
+                                <span class="heat-dot active"></span>
+                                <span class="heat-dot"></span>
+                                <span class="heat-dot"></span>
+                                <span class="heat-dot"></span>
+                                <span class="heat-dot"></span>
+                            </div>
+                            <span class="domain-count">📍 探索更多</span>
+                        </div>
+                    </div>
+                    <span class="domain-expand">▼</span>
+                </div>
+                <div class="hotspot-content">
+                    <!-- 包含财经、体育、娱乐等领域 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 浮动统计面板 -->
+        <div class="floating-stats">
+            <div class="stats-item">
+                <span class="stats-label">📊 总新闻</span>
+                <span class="stats-value">1,456 条</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">🔥 热点领域</span>
+                <span class="stats-value">3 个</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">⏱️ 更新时间</span>
+                <span class="stats-value">2分钟前</span>
+            </div>
+        </div>
+
+        <!-- 底部导航 -->
+        <div class="bottom-nav">
+            <div class="nav-item active">
+                <span class="nav-icon">🗺️</span>
+                <span class="nav-label">探索</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon">🎯</span>
+                <span class="nav-label">推荐</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon">⭐</span>
+                <span class="nav-label">收藏</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">我的</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 切换领域展开/收起
+        function toggleDomain(header) {
+            const content = header.nextElementSibling;
+            const isExpanded = header.classList.contains('expanded');
+
+            header.classList.toggle('expanded');
+            content.classList.toggle('expanded');
+
+            // 动画效果
+            if (!isExpanded) {
+                content.style.maxHeight = content.scrollHeight + 'px';
+            } else {
+                setTimeout(() => {
+                    content.style.maxHeight = '0';
+                }, 10);
+            }
+        }
+
+        // 视图切换
+        function switchView(viewType) {
+            const buttons = document.querySelectorAll('.view-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            console.log(`切换到 ${viewType} 视图`);
+            // 这里可以实现不同视图的切换逻辑
+        }
+
+        // 搜索功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchBar = document.querySelector('.search-bar');
+            const hotspotCards = document.querySelectorAll('.hotspot-card');
+
+            searchBar.addEventListener('focus', function() {
+                this.placeholder = '🎯 输入关键词，快速定位感兴趣的内容...';
+            });
+
+            searchBar.addEventListener('blur', function() {
+                this.placeholder = '🗺️ 探索新闻世界，发现你感兴趣的内容...';
+            });
+
+            searchBar.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+
+                // 实时筛选内容
+                if (searchTerm.length > 0) {
+                    highlightMatchingContent(searchTerm);
+                } else {
+                    clearHighlight();
+                }
+            });
+
+            // 热点卡片点击事件
+            hotspotCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const title = this.querySelector('.hotspot-title').textContent;
+                    console.log(`打开热点文章: ${title}`);
+
+                    // 添加点击反馈
+                    this.style.transform = 'translateX(6px) scale(0.98)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+
+            // 模拟实时数据更新
+            setInterval(updateRealtimeStats, 30000); // 每30秒更新一次
+        });
+
+        // 高亮匹配内容
+        function highlightMatchingContent(searchTerm) {
+            const domains = document.querySelectorAll('.info-domain');
+
+            domains.forEach(domain => {
+                const name = domain.querySelector('.domain-name').textContent.toLowerCase();
+                if (name.includes(searchTerm)) {
+                    domain.style.opacity = '1';
+                    domain.style.transform = 'scale(1.02)';
+                } else {
+                    domain.style.opacity = '0.3';
+                    domain.style.transform = 'scale(1)';
+                }
+            });
+        }
+
+        // 清除高亮
+        function clearHighlight() {
+            const domains = document.querySelectorAll('.info-domain');
+            domains.forEach(domain => {
+                domain.style.opacity = '1';
+                domain.style.transform = 'scale(1)';
+            });
+        }
+
+        // 实时统计数据更新
+        function updateRealtimeStats() {
+            const statsValues = document.querySelectorAll('.stats-value');
+
+            // 模拟数据变化
+            const totalNews = Math.floor(1456 + Math.random() * 50);
+            const hotDomains = Math.floor(3 + Math.random() * 2);
+
+            statsValues[0].textContent = `${totalNews.toLocaleString()} 条`;
+            statsValues[1].textContent = `${hotDomains} 个`;
+            statsValues[2].textContent = '刚刚';
+
+            // 添加更新动画
+            statsValues.forEach(stat => {
+                stat.style.animation = 'none';
+                setTimeout(() => {
+                    stat.style.animation = 'fadeInUp 0.5s ease-out';
+                }, 10);
+            });
+        }
+
+        // 添加键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K 聚焦搜索
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                document.querySelector('.search-bar').focus();
+            }
+
+            // ESC 清空搜索
+            if (e.key === 'Escape') {
+                const searchBar = document.querySelector('.search-bar');
+                searchBar.value = '';
+                searchBar.blur();
+                clearHighlight();
+            }
+        });
+
+        // 触摸手势支持
+        let touchStartY = 0;
+        let touchEndY = 0;
+
+        document.addEventListener('touchstart', function(e) {
+            touchStartY = e.changedTouches[0].screenY;
+        });
+
+        document.addEventListener('touchend', function(e) {
+            touchEndY = e.changedTouches[0].screenY;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeDistance = touchStartY - touchEndY;
+
+            // 下拉刷新
+            if (swipeDistance < -100) {
+                console.log('下拉刷新');
+                location.reload();
+            }
+
+            // 上拉加载更多
+            if (swipeDistance > 100) {
+                console.log('上拉加载更多');
+                loadMoreContent();
+            }
+        }
+
+        // 加载更多内容
+        function loadMoreContent() {
+            const newsWorld = document.querySelector('.news-world');
+
+            // 添加加载提示
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'info-domain fade-in-up';
+            loadingDiv.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: var(--text-tertiary);">
+                    <div>🔄 正在加载更多内容...</div>
+                </div>
+            `;
+            newsWorld.appendChild(loadingDiv);
+
+            // 模拟加载
+            setTimeout(() => {
+                loadingDiv.remove();
+                console.log('内容加载完成');
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

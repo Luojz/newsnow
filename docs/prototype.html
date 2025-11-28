@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NewsNow - Apple 风格新闻阅读器</title>
+    <style>
+        /* Apple 设计系统 CSS */
+        :root {
+            /* 主色调 */
+            --primary-blue: #007AFF;
+            --primary-gray: #8E8E93;
+
+            /* 背景色 */
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F2F2F7;
+            --bg-tertiary: #FFFFFF;
+
+            /* 文字色 */
+            --text-primary: #000000;
+            --text-secondary: #3C3C43;
+            --text-tertiary: #8E8E93;
+
+            /* 字体系统 */
+            --font-large: 34px;
+            --font-title: 28px;
+            --font-body: 17px;
+            --font-caption: 15px;
+            --font-small: 13px;
+
+            /* 圆角系统 */
+            --radius-small: 8px;
+            --radius-medium: 12px;
+            --radius-large: 16px;
+            --radius-xlarge: 24px;
+
+            /* 阴影系统 */
+            --shadow-light: 0 2px 8px rgba(0,0,0,0.08);
+            --shadow-medium: 0 4px 16px rgba(0,0,0,0.12);
+            --shadow-heavy: 0 8px 32px rgba(0,0,0,0.16);
+
+            /* 动画 */
+            --transition-fast: 0.2s ease;
+            --transition-medium: 0.3s ease;
+            --transition-slow: 0.5s ease;
+        }
+
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+
+        /* 容器 */
+        .container {
+            max-width: 430px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--bg-primary);
+            position: relative;
+            box-shadow: var(--shadow-heavy);
+        }
+
+        /* 顶部搜索栏 */
+        .search-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 16px;
+        }
+
+        .search-bar {
+            position: relative;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xlarge);
+            padding: 12px 48px 12px 16px;
+            font-size: var(--font-body);
+            border: none;
+            width: 100%;
+            transition: all var(--transition-fast);
+        }
+
+        .search-bar:focus {
+            outline: none;
+            background: var(--bg-tertiary);
+            box-shadow: var(--shadow-light);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+        }
+
+        /* 智能推荐标签 */
+        .smart-tags {
+            padding: 16px;
+            background: var(--bg-primary);
+        }
+
+        .tags-title {
+            font-size: var(--font-caption);
+            color: var(--text-tertiary);
+            margin-bottom: 12px;
+            font-weight: var(--weight-medium);
+        }
+
+        .tags-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .tags-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tag {
+            background: linear-gradient(135deg, var(--primary-blue), #5AC8FA);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: var(--font-caption);
+            font-weight: var(--weight-medium);
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            border: none;
+            box-shadow: var(--shadow-light);
+        }
+
+        .tag:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .tag:active {
+            transform: translateY(0);
+        }
+
+        .tag.active {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+            transform: scale(1.05);
+        }
+
+        /* AI 推荐专栏 */
+        .ai-recommendations {
+            background: var(--bg-primary);
+            padding: 16px;
+            margin-top: 8px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+
+        .section-title {
+            font-size: var(--font-title);
+            font-weight: var(--weight-bold);
+            color: var(--text-primary);
+            margin-right: 8px;
+        }
+
+        .section-subtitle {
+            font-size: var(--font-caption);
+            color: var(--text-tertiary);
+        }
+
+        .recommendation-section {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-large);
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .section-header-mini {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .section-icon-small {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-small);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .section-title-small {
+            font-size: var(--font-body);
+            font-weight: var(--weight-semibold);
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .section-badge {
+            background: linear-gradient(135deg, var(--primary-blue), #5AC8FA);
+            color: white;
+            padding: 4px 8px;
+            border-radius: var(--radius-small);
+            font-size: var(--font-small);
+            font-weight: var(--weight-medium);
+        }
+
+        .recommendation-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .rec-card {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-medium);
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            position: relative;
+        }
+
+        .rec-card:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-light);
+        }
+
+        .rec-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(135deg, var(--primary-blue), #5AC8FA);
+            transform: scaleY(0);
+            transition: transform var(--transition-fast);
+        }
+
+        .rec-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .rec-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-small);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .rec-content {
+            flex: 1;
+        }
+
+        .rec-title {
+            font-size: var(--font-caption);
+            font-weight: var(--weight-medium);
+            color: var(--text-primary);
+            line-height: 1.3;
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .rec-meta {
+            font-size: var(--font-small);
+            color: var(--text-tertiary);
+        }
+
+        .rec-score {
+            background: linear-gradient(135deg, #34C759, #30D158);
+            color: white;
+            padding: 4px 6px;
+            border-radius: var(--radius-small);
+            font-size: var(--font-small);
+            font-weight: var(--weight-bold);
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+
+        /* 新闻卡片 */
+        .news-list {
+            padding: 0 16px 100px;
+        }
+
+        .news-card {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-large);
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-light);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .news-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-blue), #5AC8FA);
+            transform: scaleX(0);
+            transition: transform var(--transition-fast);
+        }
+
+        .news-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .news-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .news-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .news-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-small);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .news-meta {
+            flex: 1;
+        }
+
+        .news-source {
+            font-size: var(--font-caption);
+            color: var(--text-secondary);
+            font-weight: var(--weight-medium);
+        }
+
+        .news-time {
+            font-size: var(--font-small);
+            color: var(--text-tertiary);
+        }
+
+        .news-title {
+            font-size: var(--font-body);
+            color: var(--text-primary);
+            font-weight: var(--weight-semibold);
+            line-height: 1.4;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .news-summary {
+            font-size: var(--font-caption);
+            color: var(--text-secondary);
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* 智能推荐卡片 */
+        .ai-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: var(--radius-large);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .ai-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 8px;
+            border-radius: var(--radius-small);
+            font-size: var(--font-small);
+            font-weight: var(--weight-medium);
+            margin-bottom: 8px;
+        }
+
+        .ai-title {
+            font-size: var(--font-title);
+            font-weight: var(--weight-bold);
+            margin-bottom: 8px;
+        }
+
+        .ai-description {
+            font-size: var(--font-body);
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 430px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 20px;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            color: var(--text-tertiary);
+        }
+
+        .nav-item.active {
+            color: var(--primary-blue);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: var(--font-small);
+            font-weight: var(--weight-medium);
+        }
+
+        /* 加载动画 */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 375px) {
+            .container {
+                max-width: 100%;
+            }
+
+            .news-title {
+                font-size: 16px;
+            }
+
+            .ai-title {
+                font-size: 24px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                margin: 20px auto;
+                border-radius: var(--radius-large);
+                overflow: hidden;
+            }
+
+            .bottom-nav {
+                border-radius: 0 0 var(--radius-large) var(--radius-large);
+            }
+        }
+
+        /* 微动效 */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部搜索栏 -->
+        <div class="search-header">
+            <input type="text" class="search-bar" placeholder="🤖 AI 智能搜索: 输入你感兴趣的内容..." />
+            <span class="search-icon">🔍</span>
+        </div>
+
+        <!-- 用户偏好设置 -->
+        <div class="smart-tags">
+            <div class="tags-title">🎯 你的兴趣偏好 (点击可调整)</div>
+            <div class="tags-container">
+                <button class="tag active" data-weight="3">军事科技 ⭐⭐⭐</button>
+                <button class="tag active" data-weight="2">AI大模型 ⭐⭐</button>
+                <button class="tag" data-weight="1">科技创新 ⭐</button>
+                <button class="tag" data-weight="1">国际热点 ⭐</button>
+                <button class="tag" data-weight="0">财经资讯</button>
+                <button class="tag" data-weight="0">体育运动</button>
+            </div>
+        </div>
+
+        <!-- AI 专属推荐专栏 -->
+        <div class="ai-recommendations">
+            <div class="section-header">
+                <span class="section-icon">🎯</span>
+                <span class="section-title">AI 专属推荐</span>
+                <span class="section-subtitle">基于你的兴趣定制</span>
+            </div>
+
+            <!-- 军事科技专栏 -->
+            <div class="recommendation-section">
+                <div class="section-header-mini">
+                    <div class="section-icon-small" style="background: linear-gradient(135deg, #667eea, #764ba2);">🎖️</div>
+                    <div class="section-title-small">军事科技</div>
+                    <div class="section-badge">你的最爱</div>
+                </div>
+                <div class="recommendation-cards">
+                    <div class="rec-card">
+                        <div class="rec-icon">军</div>
+                        <div class="rec-content">
+                            <div class="rec-title">新型无人机技术突破：续航时间提升300%</div>
+                            <div class="rec-meta">军事观察 • 2小时前</div>
+                        </div>
+                        <div class="rec-score">95%</div>
+                    </div>
+                    <div class="rec-card">
+                        <div class="rec-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">防</div>
+                        <div class="rec-content">
+                            <div class="rec-title">国产新装备列装：现代化国防能力显著提升</div>
+                            <div class="rec-meta">国防科技 • 3小时前</div>
+                        </div>
+                        <div class="rec-score">92%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI大模型专栏 -->
+            <div class="recommendation-section">
+                <div class="section-header-mini">
+                    <div class="section-icon-small" style="background: linear-gradient(135deg, #f093fb, #f5576c);">🤖</div>
+                    <div class="section-title-small">AI大模型</div>
+                    <div class="section-badge">相关度很高</div>
+                </div>
+                <div class="recommendation-cards">
+                    <div class="rec-card">
+                        <div class="rec-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">AI</div>
+                        <div class="rec-content">
+                            <div class="rec-title">GPT-5 即将发布：性能提升超乎想象</div>
+                            <div class="rec-meta">AI前沿 • 3小时前</div>
+                        </div>
+                        <div class="rec-score">88%</div>
+                    </div>
+                    <div class="rec-card">
+                        <div class="rec-icon" style="background: linear-gradient(135deg, #a8edea, #fed6e3);">算</div>
+                        <div class="rec-content">
+                            <div class="rec-title">量子计算与AI融合：算力革命即将到来</div>
+                            <div class="rec-meta">智能科技 • 5小时前</div>
+                        </div>
+                        <div class="rec-score">85%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 全部新闻列表 -->
+        <div class="news-list">
+            <div class="section-header">
+                <span class="section-icon">📰</span>
+                <span class="section-title">全部新闻</span>
+                <span class="section-subtitle">最新动态</span>
+            </div>
+
+            <!-- 新闻卡片 1 -->
+            <div class="news-card fade-in">
+                <div class="news-header">
+                    <div class="news-icon">军</div>
+                    <div class="news-meta">
+                        <div class="news-source">军事观察</div>
+                        <div class="news-time">2小时前</div>
+                    </div>
+                </div>
+                <div class="news-title">新型无人机技术突破：续航时间提升300%</div>
+                <div class="news-summary">最新研发的高性能无人机在电池技术和空气动力学设计方面取得重大突破，续航能力显著提升...</div>
+            </div>
+
+            <!-- 新闻卡片 2 -->
+            <div class="news-card fade-in">
+                <div class="news-header">
+                    <div class="news-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">AI</div>
+                    <div class="news-meta">
+                        <div class="news-source">AI前沿</div>
+                        <div class="news-time">3小时前</div>
+                    </div>
+                </div>
+                <div class="news-title">GPT-5 即将发布：性能提升超乎想象</div>
+                <div class="news-summary">据内部消息透露，下一代大语言模型 GPT-5 在多个基准测试中表现优异，推理能力和创造性大幅提升...</div>
+            </div>
+
+            <!-- 新闻卡片 3 -->
+            <div class="news-card fade-in">
+                <div class="news-header">
+                    <div class="news-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">科</div>
+                    <div class="news-meta">
+                        <div class="news-source">科技日报</div>
+                        <div class="news-time">5小时前</div>
+                    </div>
+                </div>
+                <div class="news-title">量子计算机实现重要突破：错误率降低90%</div>
+                <div class="news-summary">研究团队在量子纠错领域取得重大进展，新算法显著提高了量子计算的稳定性和可靠性...</div>
+            </div>
+
+            <!-- 新闻卡片 4 -->
+            <div class="news-card fade-in">
+                <div class="news-header">
+                    <div class="news-icon" style="background: linear-gradient(135deg, #fa709a, #fee140);">热</div>
+                    <div class="news-meta">
+                        <div class="news-source">微博热搜</div>
+                        <div class="news-time">6小时前</div>
+                    </div>
+                </div>
+                <div class="news-title">国产大飞机C919获得新订单：国际市场认可度提升</div>
+                <div class="news-summary">中国商飞宣布获得多家航空公司的采购意向，标志着国产大飞机在国际市场上的竞争力不断增强...</div>
+            </div>
+
+            <!-- 新闻卡片 5 -->
+            <div class="news-card fade-in">
+                <div class="news-header">
+                    <div class="news-icon" style="background: linear-gradient(135deg, #a8edea, #fed6e3);">智</div>
+                    <div class="news-meta">
+                        <div class="news-source">智能科技</div>
+                        <div class="news-time">8小时前</div>
+                    </div>
+                </div>
+                <div class="news-title">自动驾驶技术新里程碑：L4级别获商用许可</div>
+                <div class="news-summary">交通部门首次授予L4级自动驾驶商用许可，这标志着完全自动驾驶时代的正式到来...</div>
+            </div>
+        </div>
+
+        <!-- 底部导航 -->
+        <div class="bottom-nav slide-up">
+            <div class="nav-item active">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">首页</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">发现</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">我的</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">设置</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟数据加载
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加交互动画
+            const cards = document.querySelectorAll('.news-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+
+            // 搜索栏交互
+            const searchBar = document.querySelector('.search-bar');
+            searchBar.addEventListener('focus', function() {
+                this.placeholder = '💬 试试说: 我喜欢军事科技...';
+            });
+
+            searchBar.addEventListener('blur', function() {
+                this.placeholder = '🤖 AI 智能搜索: 输入你感兴趣的内容...';
+            });
+
+            // 标签点击事件 - 权重调整
+            const tags = document.querySelectorAll('.tag');
+            tags.forEach(tag => {
+                tag.addEventListener('click', function() {
+                    const weight = parseInt(this.dataset.weight);
+                    const tagText = this.textContent.replace(/\s⭐+$/, '');
+
+                    // 切换激活状态和权重
+                    if (this.classList.contains('active')) {
+                        // 减少权重
+                        const newWeight = Math.max(0, weight - 1);
+                        this.dataset.weight = newWeight;
+
+                        if (newWeight === 0) {
+                            this.classList.remove('active');
+                            this.textContent = tagText;
+                        } else {
+                            const stars = '⭐'.repeat(newWeight);
+                            this.textContent = `${tagText} ${stars}`;
+                        }
+                    } else {
+                        // 激活并设置权重为1
+                        this.classList.add('active');
+                        this.dataset.weight = 1;
+                        this.textContent = `${tagText} ⭐`;
+                    }
+
+                    // 重新搜索并更新推荐
+                    updateRecommendations();
+
+                    // 添加点击动画
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 100);
+                });
+            });
+
+            // 推荐卡片点击事件
+            const recCards = document.querySelectorAll('.rec-card');
+            recCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const title = this.querySelector('.rec-title').textContent;
+                    console.log(`打开推荐文章: ${title}`);
+
+                    // 添加点击反馈
+                    this.style.transform = 'translateX(2px) scale(0.98)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+
+            // 更新推荐内容
+            function updateRecommendations() {
+                const activeTags = document.querySelectorAll('.tag.active');
+                const preferences = Array.from(activeTags).map(tag => ({
+                    name: tag.textContent.replace(/\s⭐+$/, ''),
+                    weight: parseInt(tag.dataset.weight)
+                }));
+
+                console.log('更新推荐基于:', preferences);
+
+                // 这里可以调用真实的 AI 推荐API
+                // updateAIRecommendations(preferences);
+            }
+
+            // 新闻卡片点击事件
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // 模拟文章跳转
+                    const title = this.querySelector('.news-title').textContent;
+                    console.log(`跳转到文章: ${title}`);
+
+                    // 添加点击反馈
+                    this.style.transform = 'scale(0.98)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+
+            // 底部导航切换
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // 模拟无限滚动
+            let isLoading = false;
+            window.addEventListener('scroll', function() {
+                if (isLoading) return;
+
+                const scrollHeight = document.documentElement.scrollHeight;
+                const scrollTop = document.documentElement.scrollTop;
+                const clientHeight = document.documentElement.clientHeight;
+
+                if (scrollTop + clientHeight >= scrollHeight - 100) {
+                    isLoading = true;
+                    // 模拟加载更多内容
+                    setTimeout(() => {
+                        const newsList = document.querySelector('.news-list');
+                        const newCard = createNewsCard('更多新闻内容加载中...', 'AI推荐', '刚刚');
+                        newsList.appendChild(newCard);
+                        isLoading = false;
+                    }, 1000);
+                }
+            });
+        });
+
+        // 创建新闻卡片
+        function createNewsCard(title, source, time) {
+            const card = document.createElement('div');
+            card.className = 'news-card fade-in';
+            card.innerHTML = `
+                <div class="news-header">
+                    <div class="news-icon" style="background: linear-gradient(135deg, #${Math.random().toString(16).substr(2, 6)}, #${Math.random().toString(16).substr(2, 6)});">${source[0]}</div>
+                    <div class="news-meta">
+                        <div class="news-source">${source}</div>
+                        <div class="news-time">${time}</div>
+                    </div>
+                </div>
+                <div class="news-title">${title}</div>
+                <div class="news-summary">这是 AI 为你生成的新闻摘要内容，基于你的兴趣爱好推荐...</div>
+            `;
+            return card;
+        }
+    </script>
+</body>
+</html>
