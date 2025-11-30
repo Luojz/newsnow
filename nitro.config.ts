@@ -30,6 +30,17 @@ const nitroOption: Parameters<typeof viteNitro>[0] = {
     "@shared": join(projectDir, "shared"),
     "#": join(projectDir, "server"),
   },
+  routeRules: {
+    "/api/**": {
+      cors: true,
+      headers: {
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Accept, Origin, Cache-Control",
+        "Access-Control-Expose-Headers": "Content-Length, Content-Range",
+        "Access-Control-Max-Age": "86400",
+      },
+    },
+  },
 }
 
 if (process.env.VERCEL) {

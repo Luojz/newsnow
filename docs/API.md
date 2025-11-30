@@ -6,7 +6,7 @@ NewsNow 提供完整的 RESTful API 接口，支持新闻数据获取、用户�
 
 ## 基础信息
 
-- **Base URL**: `https://your-domain.com/api`
+- **Base URL**: `http:/43.143.225.199:8989/api`
 - **Content-Type**: `application/json`
 - **数据格式**: JSON
 - **字符编码**: UTF-8
